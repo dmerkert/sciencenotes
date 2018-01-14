@@ -1,0 +1,96 @@
+#!/usr/bin/python3
+
+import datetime
+import os
+import pathlib
+import re
+import sys
+import pypandoc
+import tempfile
+import subprocess
+
+path = "/home/user/projekte/science"
+def create(name):
+    filename = "{}-{}.md".format(
+            datetime.date.today().strftime("%Y-%m-%d"),
+            name
+            )
+    filepath = "{}/{}/{}".format(
+            path,
+            datetime.date.today().strftime("%Y"),
+            datetime.date.today().strftime("%m")
+            )
+    fullfilepath = "{}/{}".format(filepath,filename)
+
+    try:
+        os.makedirs(filepath)
+    except FileExistsError:
+        pass
+    pathlib.Path(fullfilepath).touch()
+    print(fullfilepath)
+
+def fuzzyfinder(user_input, collection):
+    suggestions = []
+    pattern = '.*?'.join(user_input)   # Converts 'djm' to 'd.*?j.*?m'
+    regex = re.compile(pattern)  # Compiles a regex.
+    for item in collection:
+        match = regex.search(item.replace(path,"").replace(".md",""))   # Checks if the current item matches the regex.
+        if match:
+            suggestions.append((len(match.group()), match.start(), item))
+    return [x for _, _, x in sorted(suggestions)]
+
+def getFilesInDir():
+    gitRe = re.compile(".git$|.git/")
+    binRe = re.compile("bin$")
+
+    files = []
+    for root, directories, filenames in os.walk(path):
+        if not gitRe.search(root) and not binRe.search(root):
+            for filename in filenames: 
+                files.append(os.path.join(root,filename))
+    return files
+
+def find(string):
+    files = getFilesInDir()
+    finds = fuzzyfinder(string,files)
+    if len(finds) == 0:
+        print("NO FILE FOUND")
+    elif len(finds) > 1:
+        for f in finds:
+            print(f)
+    else:
+        return finds[0]
+    return None
+
+def view(string):
+    file = find(string)
+    if file != None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmpfileName = "{}/{}".format(tmpdir,"tmp.pdf")
+            pypandoc.convert_file(file,"pdf",outputfile=tmpfileName)
+            subprocess.call(["mupdf",tmpfileName])
+
+def edit(string):
+    file = find(string)
+    if file != None:
+        subprocess.call(["gvim",file])
+
+
+
+if len(sys.argv) == 2:
+    file = sys.argv[1]
+    view(file)
+
+elif len(sys.argv) == 3:
+    command = sys.argv[1]
+    file = sys.argv[2]
+
+    if command == "c":
+        create(file)
+        edit(file)
+    if command == "f":
+        print(find(file))
+    if command == "v":
+        view(file)
+    if command == "e":
+        edit(file)
