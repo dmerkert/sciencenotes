@@ -45,6 +45,10 @@ def do_move(args):
     fullfilepath = actions.generateFilename(name,extension=extension)
     shutil.move(args.file, fullfilepath)
 
+def do_grep(args):
+    output = actions.grep(args.file)
+    for o in output:
+        print(o)
 
 
 
@@ -136,6 +140,14 @@ parser_find_all = parser_subparsers.add_parser(
         )
 parser_find_all.set_defaults(func=do_find_all)
 parser_find_all.add_argument('file',action="store")
+
+parser_grep = parser_subparsers.add_parser(
+        'grep',
+        help="greps files",
+        aliases=['g']
+        )
+parser_grep.set_defaults(func=do_grep)
+parser_grep.add_argument('file',action="store")
 
 parser_copy = parser_subparsers.add_parser(
         'copy',
