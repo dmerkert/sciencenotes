@@ -1,96 +1,117 @@
-#!/usr/bin/python3
+#!/usr/bin/env python
 
-import datetime
-import os
-import pathlib
-import re
+import argparse
+import actions
 import sys
-import pypandoc
-import tempfile
-import subprocess
 
-path = "/home/user/projekte/science"
-def create(name):
-    filename = "{}-{}.md".format(
-            datetime.date.today().strftime("%Y-%m-%d"),
-            name
-            )
-    filepath = "{}/{}/{}".format(
-            path,
-            datetime.date.today().strftime("%Y"),
-            datetime.date.today().strftime("%m")
-            )
-    fullfilepath = "{}/{}".format(filepath,filename)
 
-    try:
-        os.makedirs(filepath)
-    except FileExistsError:
-        pass
-    pathlib.Path(fullfilepath).touch()
-    print(fullfilepath)
+def do_view(args):
+    if args.html:
+        args.pdf = False
 
-def fuzzyfinder(user_input, collection):
-    suggestions = []
-    pattern = '.*?'.join(user_input)   # Converts 'djm' to 'd.*?j.*?m'
-    regex = re.compile(pattern)  # Compiles a regex.
-    for item in collection:
-        match = regex.search(item.replace(path,"").replace(".md",""))   # Checks if the current item matches the regex.
-        if match:
-            suggestions.append((len(match.group()), match.start(), item))
-    return [x for _, _, x in sorted(suggestions)]
+    file = actions.find(args.file)
+    if args.pdf:
+        actions.view(file)
 
-def getFilesInDir():
-    gitRe = re.compile(".git$|.git/")
-    binRe = re.compile("bin$")
+def do_create(args):
+    filename = actions.create(args.file)
+    if filename != None:
+        print(filename)
+        actions.edit(filename)
 
-    files = []
-    for root, directories, filenames in os.walk(path):
-        if not gitRe.search(root) and not binRe.search(root):
-            for filename in filenames: 
-                files.append(os.path.join(root,filename))
-    return files
+def do_find(args):
+    filename = actions.find(args.file)
+    if filename != None:
+        print(filename)
 
-def find(string):
-    files = getFilesInDir()
-    finds = fuzzyfinder(string,files)
-    if len(finds) == 0:
-        print("NO FILE FOUND")
-    elif len(finds) > 1:
-        for f in finds:
-            print(f)
+def do_edit(args):
+    file = actions.find(args.file)
+    actions.edit(file)
+
+
+def set_default_subparser(self, name, args=None):
+    """default subparser selection. Call after setup, just before parse_args()
+    name: is the name of the subparser to call by default
+    args: if set is the argument list handed to parse_args()
+
+    , tested with 2.7, 3.2, 3.3, 3.4
+    it works with 2.6 assuming argparse is installed
+    """
+    subparser_found = False
+    for arg in sys.argv[1:]:
+        if arg in ['-h', '--help']:  # global help if no subparser
+            break
     else:
-        return finds[0]
-    return None
+        for x in self._subparsers._actions:
+            if not isinstance(x, argparse._SubParsersAction):
+                continue
+            for sp_name in x._name_parser_map.keys():
+                if sp_name in sys.argv[1:]:
+                    subparser_found = True
+        if not subparser_found:
+            # insert default in first position, this implies no
+            # global options without a sub_parsers specified
+            if args is None:
+                sys.argv.insert(1, name)
+            else:
+                args.insert(0, name)
 
-def view(string):
-    file = find(string)
-    if file != None:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            tmpfileName = "{}/{}".format(tmpdir,"tmp.pdf")
-            pypandoc.convert_file(file,"pdf",outputfile=tmpfileName)
-            subprocess.call(["mupdf",tmpfileName])
+argparse.ArgumentParser.set_default_subparser = set_default_subparser
 
-def edit(string):
-    file = find(string)
-    if file != None:
-        subprocess.call(["gvim",file])
+parser = argparse.ArgumentParser()
+parser_subparsers = parser.add_subparsers()
 
+parser_view = parser_subparsers.add_parser(
+        'view',
+        help="views a file found by fuzzy search",
+        aliases=['v']
+        )
+parser_view.set_defaults(func=do_view)
+parser_view.add_argument(
+        'file',
+        help="the file name to view given by a fuzzy search",
+        action="store")
 
+group_view = parser_view.add_mutually_exclusive_group()
+group_view.add_argument(
+        '--html',
+        action="store_true",
+        help="produces a HTML file and views it in the browser",
+        default=False
+        )
+group_view.add_argument(
+        '--pdf',
+        action="store_true",
+        help="produces a PDF file and views it in mupdf (default)",
+        default=True
+        )
 
-if len(sys.argv) == 2:
-    file = sys.argv[1]
-    view(file)
+parser_create = parser_subparsers.add_parser(
+        'create',
+        help="creates a file and opens it for edit",
+        aliases=['c','cr']
+        )
+parser_create.set_defaults(func=do_create)
+parser_create.add_argument('file',action="store")
 
-elif len(sys.argv) == 3:
-    command = sys.argv[1]
-    file = sys.argv[2]
+parser_edit = parser_subparsers.add_parser(
+        'edit',
+        help="opens a file for edit given by a fuzzy search",
+        aliases=['e']
+        )
+parser_edit.set_defaults(func=do_edit)
+parser_edit.add_argument('file',action="store")
 
-    if command == "c":
-        create(file)
-        edit(file)
-    if command == "f":
-        print(find(file))
-    if command == "v":
-        view(file)
-    if command == "e":
-        edit(file)
+parser_find = parser_subparsers.add_parser(
+        'find',
+        help="finds a file using fuzzy search on the file name",
+        aliases=['f']
+        )
+parser_find.set_defaults(func=do_find)
+parser_find.add_argument('file',action="store")
+
+parser.set_default_subparser('view')
+parsed_args = parser.parse_args()
+
+if hasattr(parsed_args, 'func'):
+    parsed_args.func(parsed_args)

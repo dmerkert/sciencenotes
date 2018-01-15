@@ -1,0 +1,5 @@
+path: /home/dmerkert/projekte/science
+programs:
+  pdf: mupdf-x11
+  html: chromium
+  editor: gvim
