@@ -5,4 +5,5 @@ with open("config.yml", 'r') as ymlfile:
 
 path = cfg['path']
 programs = cfg['programs']
+searchpaths = cfg['searchpaths']
 

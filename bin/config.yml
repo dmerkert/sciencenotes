@@ -3,3 +3,5 @@ programs:
   pdf: mupdf-x11
   html: chromium
   editor: gvim
+searchpaths:
+  - /home/dmerkert/buecher

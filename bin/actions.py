@@ -8,10 +8,11 @@ import tempfile
 import pypandoc
 import config as cfg
 
-def create(name):
-    filename = "{}-{}.md".format(
+def generateFilename(name,extension=".md"):
+    filename = "{}-{}{}".format(
             datetime.date.today().strftime("%Y-%m-%d"),
-            name
+            name,
+            extension
             )
     filepath = "{}/{}/{}".format(
             cfg.path,
@@ -24,6 +25,13 @@ def create(name):
         os.makedirs(filepath)
     except FileExistsError:
         pass
+
+    return fullfilepath
+
+def create(name):
+    
+    fullfilepath = generateFilename(name)
+
     pathlib.Path(fullfilepath).touch()
     return fullfilepath
 
@@ -37,19 +45,29 @@ def fuzzyfinder(user_input, collection):
             suggestions.append((len(match.group()), match.start(), item))
     return [x for _, _, x in sorted(suggestions)]
 
-def getFilesInDir():
+def getFilesInDir(filterMarkdown=False,otherSearchPaths=False):
     gitRe = re.compile(".git$|.git/")
     binRe = re.compile("bin$")
 
     files = []
     for root, directories, filenames in os.walk(cfg.path):
         if not gitRe.search(root) and not binRe.search(root):
-            for filename in filenames: 
-                files.append(os.path.join(root,filename))
+            for filename in filenames:
+                if not filterMarkdown or filename.endswith(".md"):
+                    files.append(os.path.join(root,filename))
+
+    if otherSearchPaths:
+        for p in cfg.searchpaths:
+            for root, directories, filenames in os.walk(p):
+                if not gitRe.search(root) and not binRe.search(root):
+                    for filename in filenames:
+                        if not filterMarkdown or filename.endswith(".md"):
+                            files.append(os.path.join(root,filename))
+
     return files
 
-def find(string):
-    files = getFilesInDir()
+def find(string,filterMarkdown=False,otherSearchPaths=False):
+    files = getFilesInDir(filterMarkdown=filterMarkdown,otherSearchPaths=otherSearchPaths)
     finds = fuzzyfinder(string,files)
     if len(finds) == 0:
         print("NO FILE FOUND")
@@ -61,14 +79,16 @@ def find(string):
     return None
 
 def view(file):
-    # file = find(string)
     if file != None:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            tmpfileName = "{}/{}".format(tmpdir,"tmp.pdf")
-            pypandoc.convert_file(file,"pdf",outputfile=tmpfileName)
-            subprocess.call([cfg.programs['pdf'],tmpfileName])
+        if file.endswith(".md"):
+            with tempfile.TemporaryDirectory() as tmpdir:
+                tmpfileName = "{}/{}".format(tmpdir,"tmp.pdf")
+                pypandoc.convert_file(file,"pdf",outputfile=tmpfileName)
+                subprocess.call([cfg.programs['pdf'],tmpfileName])
+        else:
+            subprocess.call(["xdg-open", file])
+
 
 def edit(file):
-    # file = find(string)
     if file != None:
         subprocess.call([cfg.programs['editor'],file])

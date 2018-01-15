@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
 import argparse
-import actions
+import shutil
 import sys
+import os
+import actions
 
 
 def do_view(args):
@@ -24,9 +26,26 @@ def do_find(args):
     if filename != None:
         print(filename)
 
+def do_find_all(args):
+    filename = actions.find(args.file,otherSearchPaths=True)
+    if filename != None:
+        print(filename)
+
 def do_edit(args):
-    file = actions.find(args.file)
+    file = actions.find(args.file, filterMarkdown=True)
     actions.edit(file)
+
+def do_copy(args):
+    name,extension = os.path.splitext(os.path.basename(args.file))
+    fullfilepath = actions.generateFilename(name,extension=extension)
+    shutil.copyfile(args.file, fullfilepath)
+
+def do_move(args):
+    name,extension = os.path.splitext(os.path.basename(args.file))
+    fullfilepath = actions.generateFilename(name,extension=extension)
+    shutil.move(args.file, fullfilepath)
+
+
 
 
 def set_default_subparser(self, name, args=None):
@@ -109,6 +128,30 @@ parser_find = parser_subparsers.add_parser(
         )
 parser_find.set_defaults(func=do_find)
 parser_find.add_argument('file',action="store")
+
+parser_find_all = parser_subparsers.add_parser(
+        'findall',
+        help="finds a file using fuzzy search on the file name including the searchpaths",
+        aliases=['fa']
+        )
+parser_find_all.set_defaults(func=do_find_all)
+parser_find_all.add_argument('file',action="store")
+
+parser_copy = parser_subparsers.add_parser(
+        'copy',
+        help="copys a file to the directory",
+        aliases=['cp']
+        )
+parser_copy.set_defaults(func=do_copy)
+parser_copy.add_argument('file',action="store")
+
+parser_move = parser_subparsers.add_parser(
+        'move',
+        help="moves a file to the directory",
+        aliases=['mv']
+        )
+parser_move.set_defaults(func=do_move)
+parser_move.add_argument('file',action="store")
 
 parser.set_default_subparser('view')
 parsed_args = parser.parse_args()
