@@ -6,7 +6,9 @@ import re
 import subprocess
 import tempfile
 import pypandoc
-import config as cfg
+import config
+
+cfg = config.Config()
 
 def generateFilename(name,extension=".md"):
     filename = "{}-{}{}".format(
@@ -15,7 +17,7 @@ def generateFilename(name,extension=".md"):
             extension
             )
     filepath = "{}/{}/{}".format(
-            cfg.path,
+            cfg.getPath(),
             datetime.date.today().strftime("%Y"),
             datetime.date.today().strftime("%m")
             )
@@ -50,14 +52,14 @@ def getFilesInDir(filterMarkdown=False,otherSearchPaths=False):
     binRe = re.compile("bin$")
 
     files = []
-    for root, directories, filenames in os.walk(cfg.path):
+    for root, directories, filenames in os.walk(cfg.getPath()):
         if not gitRe.search(root) and not binRe.search(root):
             for filename in filenames:
                 if not filterMarkdown or filename.endswith(".md"):
                     files.append(os.path.join(root,filename))
 
     if otherSearchPaths:
-        for p in cfg.searchpaths:
+        for p in cfg.getSearchpath():
             for root, directories, filenames in os.walk(p):
                 if not gitRe.search(root) and not binRe.search(root):
                     for filename in filenames:
@@ -91,10 +93,11 @@ def view(file):
 
 def edit(file):
     if file != None:
-        subprocess.call([cfg.programs['editor'],file])
+        subprocess.call([cfg.getPrograms()['editor'],file])
 
 def grep(file):
-    command = ["grep", "-lirs","--exclude-dir=.git","--exclude=.*.swp",file, cfg.path]
+    command = ["grep", "-lirs","--exclude-dir=.git","--exclude=.*.swp",file,
+            cfg.getPath()]
     process = subprocess.Popen(command, stdout=subprocess.PIPE)
     (output, err) = process.communicate()
     exit_code = process.wait()
