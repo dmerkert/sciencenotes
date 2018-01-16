@@ -129,4 +129,7 @@ def update():
         sh.git("-C",cfg.getPath(),"commit","-a","-m","update")
     except sh.ErrorReturnCode:
         return
-        # sh.git.push("-C",cfg.getPath(),"origin","master")
+    try:
+        sh.git("-C",cfg.getPath(),"push","origin","master")
+    except sh.ErrorReturnCode:
+        return
