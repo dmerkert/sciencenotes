@@ -119,3 +119,14 @@ def grep(file):
         return [o for o in output.splitlines()]
     except sh.ErrorReturnCode:
         return []
+
+def update():
+    try:
+        sh.git("-C",cfg.getPath(),"pull","origin","master")
+    except sh.ErrorReturnCode:
+        return
+    try:
+        sh.git("-C",cfg.getPath(),"commit","-a","-m","update")
+    except sh.ErrorReturnCode:
+        return
+        # sh.git.push("-C",cfg.getPath(),"origin","master")

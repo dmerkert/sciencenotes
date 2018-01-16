@@ -56,6 +56,8 @@ def do_grep(args):
     for o in output:
         print(o)
 
+def do_update(args):
+    actions.update()
 
 
 def set_default_subparser(self, name, args=None):
@@ -198,6 +200,14 @@ def parse():
     parser_move.set_defaults(func=do_move)
     parser_move.add_argument('source',action="store")
     parser_move.add_argument('destination',action="store",nargs='?',default=None)
+
+    parser_update = parser_subparsers.add_parser(
+            'update',
+            help="updates",
+            aliases=['u'],
+            parents=[parent_config_parser]
+            )
+    parser_update.set_defaults(func=do_update)
 
     parser.set_default_subparser('view')
     return parser.parse_args()
