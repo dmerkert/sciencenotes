@@ -49,7 +49,7 @@ def fuzzyfinder(user_input, collection):
 
 def getFilesInDir(filterMarkdown=False,otherSearchPaths=False):
     gitRe = re.compile(".git$|.git/")
-    binRe = re.compile("bin$")
+    binRe = re.compile("/bin$|/__pycache__$")
 
     files = []
     for root, directories, filenames in os.walk(cfg.getPath()):
@@ -68,14 +68,25 @@ def getFilesInDir(filterMarkdown=False,otherSearchPaths=False):
 
     return files
 
-def find(string,filterMarkdown=False,otherSearchPaths=False):
+def find(string,filterMarkdown=False,otherSearchPaths=False,n=None):
     files = getFilesInDir(filterMarkdown=filterMarkdown,otherSearchPaths=otherSearchPaths)
     finds = fuzzyfinder(string,files)
+
+    if n != None:
+        if n < 0:
+            print("n HAS TO BE POSITIVE")
+            return None
+        if n >= len(finds):
+            print("n IS TOO LARGE")
+            return None
+        else:
+            return finds[n]
+
     if len(finds) == 0:
         print("NO FILE FOUND")
     elif len(finds) > 1:
-        for f in finds:
-            print(f)
+        for i,f in enumerate(finds):
+            print("{}: {}".format(i,f))
     else:
         return finds[0]
     return None
