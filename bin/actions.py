@@ -4,6 +4,7 @@ import pathlib
 import re
 # import sys
 import subprocess
+import sh
 import tempfile
 import pypandoc
 import config
@@ -107,12 +108,14 @@ def edit(file):
         subprocess.call([cfg.getPrograms()['editor'],file])
 
 def grep(file):
-    command = ["grep", "-lirs","--exclude-dir=.git","--exclude=.*.swp",file,
-            cfg.getPath()]
-    process = subprocess.Popen(command, stdout=subprocess.PIPE)
-    (output, err) = process.communicate()
-    exit_code = process.wait()
-    if exit_code == 0:
-        return [o.decode('utf-8') for o in output.splitlines()]
-    else:
+    try:
+        output = sh.grep(
+                '-lirs',
+                "--exclude-dir=.git",
+                "--exclude=.*.swp",
+                file,
+                cfg.getPath()
+                )
+        return [o for o in output.splitlines()]
+    except sh.ErrorReturnCode:
         return []
