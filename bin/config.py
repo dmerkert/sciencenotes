@@ -14,9 +14,18 @@ class Config:
         with open(file, 'r') as ymlfile:
             cfg = yaml.load(ymlfile)
 
-        cls.path = cfg['path']
-        cls.programs = cfg['programs']
-        cls.searchpaths = cfg['searchpaths']
+        cls.path = cfg.get(
+                'path',
+                "{}/.sciencenotes".format(pathlib.Path.home())
+                )
+        cls.programs = cfg.get(
+                'programs',
+                {'pdf': 'okular', 'html': 'chrome', 'editor': 'gedit'}
+                )
+        cls.searchpath = cfg.get(
+                'searchpaths',
+                []
+                )
 
     @classmethod
     def getPath(cls):

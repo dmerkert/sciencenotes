@@ -13,6 +13,7 @@ def do_view(args):
             args.search_string,
             grep=args.grep,
             fuzzy=args.fuzzy,
+            otherSearchPaths=args.other,
             n=args.n
             )
     if args.pdf:
@@ -28,7 +29,8 @@ def do_find(args):
     filename = actions.find(
             args.search_string,
             grep=args.grep,
-            fuzzy=args.fuzzy
+            fuzzy=args.fuzzy,
+            otherSearchPaths=args.other
             )
     if filename != None:
         print(filename)
@@ -39,6 +41,7 @@ def do_edit(args):
             grep=args.grep,
             fuzzy=args.fuzzy,
             filterMarkdown=True,
+            otherSearchPaths=args.other,
             n=args.n
             )
     actions.edit(file)
@@ -125,6 +128,12 @@ def parse():
             action="store_true",
             default=False,
             help="search tags"
+            )
+    parent_search_parser.add_argument(
+            '--other',
+            action="store_true",
+            default=False,
+            help="search other search paths"
             )
     parent_search_parser.add_argument(
             'n',
