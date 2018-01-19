@@ -9,7 +9,12 @@ def do_view(args):
     if args.html:
         args.pdf = False
 
-    file = actions.find(args.search_string,n=args.n)
+    file = actions.find(
+            args.search_string,
+            grep=args.grep,
+            fuzzy=args.fuzzy,
+            n=args.n
+            )
     if args.pdf:
         actions.view(file)
 
@@ -20,17 +25,22 @@ def do_create(args):
         actions.edit(filename)
 
 def do_find(args):
-    filename = actions.find(args.search_string,n=args.n)
-    if filename != None:
-        print(filename)
-
-def do_find_all(args):
-    filename = actions.find(args.search_string,otherSearchPaths=True,n=args.n)
+    filename = actions.find(
+            args.search_string,
+            grep=args.grep,
+            fuzzy=args.fuzzy
+            )
     if filename != None:
         print(filename)
 
 def do_edit(args):
-    file = actions.find(args.search_string, filterMarkdown=True,n=args.n)
+    file = actions.find(
+            args.search_string,
+            grep=args.grep,
+            fuzzy=args.fuzzy,
+            filterMarkdown=True,
+            n=args.n
+            )
     actions.edit(file)
 
 def do_copy(args):
@@ -51,14 +61,8 @@ def do_move(args):
         fullfilepath = actions.generateFilename(args.destination,extension=extension)
     shutil.move(args.source, fullfilepath)
 
-def do_grep(args):
-    output = actions.grep(args.search_string)
-    for o in output:
-        print(o)
-
 def do_update(args):
     actions.update()
-
 
 def set_default_subparser(self, name, args=None):
     """default subparser selection. Call after setup, just before parse_args()
@@ -103,6 +107,24 @@ def parse():
             'search_string',
             action='store',
             help='the string to search for'
+            )
+    parent_search_parser.add_argument(
+            '--no-fuzzy',
+            dest='fuzzy',
+            action="store_false",
+            help="no fuzzy search"
+            )
+    parent_search_parser.add_argument(
+            '--grep',
+            action="store_true",
+            default=False,
+            help="use grep"
+            )
+    parent_search_parser.add_argument(
+            '--tags',
+            action="store_true",
+            default=False,
+            help="search tags"
             )
     parent_search_parser.add_argument(
             'n',
@@ -164,22 +186,6 @@ def parse():
             parents=[parent_config_parser,parent_search_parser]
             )
     parser_find.set_defaults(func=do_find)
-
-    parser_find_all = parser_subparsers.add_parser(
-            'findall',
-            help="finds a file using fuzzy search on the file name including the searchpaths",
-            aliases=['fa'],
-            parents=[parent_config_parser,parent_search_parser]
-            )
-    parser_find_all.set_defaults(func=do_find_all)
-
-    parser_grep = parser_subparsers.add_parser(
-            'grep',
-            help="greps files",
-            aliases=['g'],
-            parents=[parent_config_parser,parent_search_parser]
-            )
-    parser_grep.set_defaults(func=do_grep)
 
     parser_copy = parser_subparsers.add_parser(
             'copy',

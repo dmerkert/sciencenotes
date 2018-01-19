@@ -8,6 +8,7 @@ import sh
 import tempfile
 import pypandoc
 import config
+import yaml
 
 cfg = config.Config()
 
@@ -69,9 +70,28 @@ def getFilesInDir(filterMarkdown=False,otherSearchPaths=False):
 
     return files
 
-def find(string,filterMarkdown=False,otherSearchPaths=False,n=None):
-    files = getFilesInDir(filterMarkdown=filterMarkdown,otherSearchPaths=otherSearchPaths)
-    finds = fuzzyfinder(string,files)
+def find(
+        string,
+        filterMarkdown=False,
+        otherSearchPaths=False,
+        n=None,
+        grep=False,
+        fuzzy=False,
+        tags=False
+        ):
+
+    finds = []
+    if fuzzy or tags:
+        files = getFilesInDir(filterMarkdown=filterMarkdown,otherSearchPaths=otherSearchPaths)
+        if fuzzy:
+            for f in fuzzyfinder(string,files):
+                finds.append(f)
+        if tags:
+            for f in find_tags(string,files):
+                finds.append(f)
+    if grep:
+        for f in find_grep(string):
+            finds.append(f)
 
     if n != None:
         if n < 0:
@@ -92,6 +112,7 @@ def find(string,filterMarkdown=False,otherSearchPaths=False,n=None):
         return finds[0]
     return None
 
+
 def view(file):
     if file != None:
         if file.endswith(".md"):
@@ -107,7 +128,7 @@ def edit(file):
     if file != None:
         subprocess.call([cfg.getPrograms()['editor'],file])
 
-def grep(file):
+def find_grep(file):
     try:
         output = sh.grep(
                 '-lirs',
@@ -133,3 +154,16 @@ def update():
         sh.git("-C",cfg.getPath(),"push","origin","master")
     except sh.ErrorReturnCode:
         return
+
+def find_tags(string,files):
+
+    finds = []
+    for file in files:
+        with open(file) as f:
+            y = next(yaml.load_all(f))
+            if string in y['tags']:
+                finds.append(file)
+
+    return finds
+
+

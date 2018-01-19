@@ -1,4 +1,5 @@
 import yaml
+import pathlib
 
 class Config:
     __slots__ = []   # prevents additional attributes from being added to instances and same-named attributes from shadowing the class's attributes
@@ -9,7 +10,7 @@ class Config:
     searchpath = []
 
     @classmethod
-    def parseConfig(cls,file="config.yml"):
+    def parseConfig(cls,file="{}/.config/science.yml".format(pathlib.Path.home())):
         with open(file, 'r') as ymlfile:
             cfg = yaml.load(ymlfile)
 
