@@ -143,16 +143,24 @@ def find_grep(file):
 
 def update():
     try:
-        sh.git("-C",cfg.getPath(),"pull","origin","master")
+        val = sh.git("-C",cfg.getPath(),"pull","origin","master")
     except sh.ErrorReturnCode:
+        print(val)
         return
     try:
-        sh.git("-C",cfg.getPath(),"commit","-a","-m","update")
+        val = sh.git("-C",cfg.getPath(),"add","-A")
     except sh.ErrorReturnCode:
+        print(val)
         return
     try:
-        sh.git("-C",cfg.getPath(),"push","origin","master")
+        val = sh.git("-C",cfg.getPath(),"commit","-a","-m","update")
     except sh.ErrorReturnCode:
+        print(val)
+        return
+    try:
+        val = sh.git("-C",cfg.getPath(),"push","origin","master")
+    except sh.ErrorReturnCode:
+        print(val)
         return
 
 def find_tags(string,files):
