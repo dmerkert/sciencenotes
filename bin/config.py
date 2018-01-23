@@ -1,5 +1,6 @@
 import yaml
 import pathlib
+import os
 
 class Config:
     __slots__ = []   # prevents additional attributes from being added to instances and same-named attributes from shadowing the class's attributes
@@ -26,6 +27,11 @@ class Config:
                 'searchpaths',
                 []
                 )
+
+        try:
+            os.makedirs(cls.path)
+        except FileExistsError:
+            pass
 
     @classmethod
     def getPath(cls):
