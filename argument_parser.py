@@ -29,6 +29,7 @@ import move
 import update
 import view
 import list
+import tags
 
 def set_default_subparser(self, name, args=None):
     """default subparser selection. Call after setup, just before parse_args()
@@ -102,6 +103,10 @@ def parse():
         [parser_config, parser_find]
         )
 
+    parser_tags = tags.get_parser(
+        parser_subparsers,
+        [parser_config, parser_find]
+        )
 
     parser.set_default_subparser('view')
     return parser.parse_args()

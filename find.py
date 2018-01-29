@@ -143,7 +143,7 @@ def return_file_choice(filenames, N):
 
 
 
-def find(args, markdown_only=False):
+def find(args, markdown_only=False, choose=True):
     """
     Applies filters to obtain a file of the user's choice.
 
@@ -188,4 +188,6 @@ def find(args, markdown_only=False):
     if not args.grep is None:
         filenames = files.filter_content(filenames, args.grep)
 
-    return return_file_choice(filenames, args.N)
+    if choose:
+        return return_file_choice(filenames, args.N)
+    return filenames
