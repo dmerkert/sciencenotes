@@ -2,8 +2,8 @@ import os
 import datetime
 import config
 
-def generate_filename(name, extension=".md"):
-    filename = name.replace(" ", "_")
+def generate_filename(filename, extension=".md"):
+    filename = filename.replace(" ", "_")
     filename = "{}-{}{}".format(
         datetime.date.today().strftime("%Y-%m-%d"),
         filename,

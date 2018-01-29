@@ -1,4 +1,5 @@
 import pathlib
+import datetime
 import config
 import misc
 
@@ -19,8 +20,8 @@ def get_parser(sub_parser,parent_parsers):
 
     return parser
 
-def create(name):
-    fullfilepath = misc.generate_filename(name)
+def create(args):
+    fullfilepath = misc.generate_filename(args.name)
     path = pathlib.Path(fullfilepath)
     print(fullfilepath)
 
@@ -29,3 +30,15 @@ def create(name):
         return
 
     pathlib.Path(fullfilepath).touch()
+
+    with open(fullfilepath, "w") as f:
+        f.write("---\n")
+        f.write("author: \n")
+        f.write("title: \"\"\n")
+        f.write("date: {}\n".format(datetime.date.today().strftime("%Y-%m-%d")))
+        f.write("subtitle: \"\"\n")
+        f.write("type: \n")
+        f.write("tags:\n")
+        f.write("  - \n")
+        f.write("---\n")
+
