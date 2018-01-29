@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 
-import arguments
+import argument_parser
 import config
 
-parsed_args = arguments.parse()
+parsed_args = argument_parser.parse()
 
 
 cfg = config.Config()
-if hasattr(parsed_args, 'config') and parsed_args.config != None:
+if hasattr(parsed_args, 'config') and not parsed_args.config is None:
     cfg.parseConfig(file=parsed_args.config)
 else:
     cfg.parseConfig()
 
-arguments.callAction(parsed_args)
+argument_parser.callAction(parsed_args)

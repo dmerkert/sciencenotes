@@ -2,6 +2,16 @@ import yaml
 import pathlib
 import os
 
+def get_parser(argparse):
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument(
+        '--config',
+        action="store",
+        default=None
+        )
+
+    return parser
+
 class Config:
     __slots__ = []   # prevents additional attributes from being added to instances and same-named attributes from shadowing the class's attributes
 
