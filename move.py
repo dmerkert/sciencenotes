@@ -39,6 +39,22 @@ def get_parser(sub_parser,parent_parsers):
         default=None
         )
 
+    parser.add_argument(
+        '--compress',
+        dest='compress',
+        action="store_true",
+        help="compresses a pdf file using GhostScript",
+        default=False
+        )
+
+    parser.add_argument(
+        '--date',
+        dest='date',
+        action="store",
+        help="specifies the date to be used for the filename (default: today)",
+        default=None
+        )
+
     parser.set_defaults(func=move)
 
     return parser
@@ -47,16 +63,28 @@ def move(args):
     name, extension = os.path.splitext(os.path.basename(args.source))
     fullfilepath = ""
     if args.destination is None:
-        fullfilepath = misc.generate_filename(name, extension=extension)
+        fullfilepath = misc.generate_filename(
+            name,
+            extension=extension,
+            date=args.date
+            )
     else:
-        fullfilepath = misc.generate_filename(args.destination, extension=extension)
+        fullfilepath = misc.generate_filename(
+            args.destination,
+            extension=extension,
+            date=args.date
+            )
 
     path = pathlib.Path(fullfilepath)
     if path.exists():
         print("File already exists")
         return
 
-    shutil.move(args.source, fullfilepath)
+    if args.compress and path.suffix == ".pdf":
+        misc.compress_pdf(args.source, fullfilepath)
+        os.remove(args.source)
+    else:
+        shutil.move(args.source, fullfilepath)
 
 
 

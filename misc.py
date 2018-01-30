@@ -17,19 +17,27 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 import os
 import datetime
+from dateutil import parser
 import config
+import sh
 
-def generate_filename(filename, extension=".md"):
+def generate_filename(filename, extension=".md",date=None):
+    filedate = datetime.date.today()
+
+    if not date is None:
+        if isinstance(date, str):
+            filedate = parser.parse(date)
+
     filename = filename.replace(" ", "_")
     filename = "{}-{}{}".format(
-        datetime.date.today().strftime("%Y-%m-%d"),
+        filedate.strftime("%Y-%m-%d"),
         filename,
         extension
         )
     filepath = "{}/{}/{}".format(
         config.Config.getPath(),
-        datetime.date.today().strftime("%Y"),
-        datetime.date.today().strftime("%m")
+        filedate.strftime("%Y"),
+        filedate.strftime("%m")
         )
     fullfilepath = "{}/{}".format(filepath, filename)
 
@@ -39,3 +47,14 @@ def generate_filename(filename, extension=".md"):
         pass
 
     return fullfilepath
+
+def compress_pdf(infile, outfile):
+    sh.gs(
+        "-dNOPAUSE",
+        "-dBATCH",
+        "-sDEVICE=pdfwrite",
+        "-dCompatibilityLevel=1.4",
+        "-dPDFSETTINGS=/ebook",
+        "-sOutputFile={}".format(outfile),
+        infile
+        )

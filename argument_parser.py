@@ -70,7 +70,7 @@ def parse():
 
     parser_copy = copy.get_parser(
         parser_subparsers,
-        [parser_config, parser_find]
+        [parser_config]
         )
 
     parser_create = create.get_parser(
@@ -85,7 +85,7 @@ def parse():
 
     parser_move = move.get_parser(
         parser_subparsers,
-        [parser_config, parser_find]
+        [parser_config]
         )
 
     parser_update = update.get_parser(

@@ -19,6 +19,7 @@ import pathlib
 import datetime
 import config
 import misc
+import dateutil
 
 def get_parser(sub_parser,parent_parsers):
     parser = sub_parser.add_parser(
@@ -35,10 +36,18 @@ def get_parser(sub_parser,parent_parsers):
         help="the name of the file to create, exclusive the date.",
         action="store")
 
+    parser.add_argument(
+        '--date',
+        dest='date',
+        action="store",
+        help="specifies the date to be used for the filename (default: today)",
+        default=None
+        )
+
     return parser
 
 def create(args):
-    fullfilepath = misc.generate_filename(args.name)
+    fullfilepath = misc.generate_filename(args.name,date=args.date)
     path = pathlib.Path(fullfilepath)
     print(fullfilepath)
 
@@ -52,7 +61,10 @@ def create(args):
         f.write("---\n")
         f.write("author: \n")
         f.write("title: \"\"\n")
-        f.write("date: {}\n".format(datetime.date.today().strftime("%Y-%m-%d")))
+        if args.date is None:
+            f.write("date: {}\n".format(datetime.date.today().strftime("%Y-%m-%d")))
+        else:
+            f.write("date: {}\n".format(dateutil.parser.parse(args.date).strftime("%Y-%m-%d")))
         f.write("subtitle: \"\"\n")
         f.write("type: \n")
         f.write("tags:\n")
